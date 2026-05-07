@@ -293,14 +293,25 @@
                 @auth
                     <div class="relative group">
                         <button class="flex items-center gap-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 p-1.5 pr-4 rounded-xl transition-all">
-                            <div class="w-8 h-8 bg-[#0B2B40] rounded-lg flex items-center justify-center text-xs font-bold text-white">
-                                {{ substr(Auth::user()->name, 0, 1) }}
+                            @if(Auth::user()->avatar)
+                                <img src="{{ str_starts_with(Auth::user()->avatar, 'http') ? Auth::user()->avatar : asset(Auth::user()->avatar) }}" alt="Avatar" class="w-8 h-8 rounded-lg object-cover">
+                            @else
+                                <div class="w-8 h-8 bg-[#0B2B40] rounded-lg flex items-center justify-center text-xs font-bold text-white">
+                                    {{ substr(Auth::user()->name, 0, 1) }}
+                                </div>
+                            @endif
+                            <div class="flex flex-col items-start leading-tight">
+                                <span class="text-sm font-bold text-[#0B2B40]">{{ Auth::user()->name }}</span>
+                                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{{ Auth::user()->role }}</span>
                             </div>
-                            <span class="text-sm font-bold text-[#0B2B40]">{{ Auth::user()->name }}</span>
                             <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
                         </button>
                         
                         <div class="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                            <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-semibold border-b border-slate-100">
+                                <i class="fa-solid fa-user"></i>
+                                Profil Saya
+                            </a>
                             <a href="{{ route('logout') }}" 
                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
                                class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors font-semibold">

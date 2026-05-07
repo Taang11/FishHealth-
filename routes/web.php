@@ -117,6 +117,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/bayar/{booking_id}', [PembayaranController::class, 'bayar'])->name('bayar');
     Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
+
+    // Profile
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::get('/midtrans/finish', [PembayaranController::class, 'finish'])->name('midtrans.finish');
 });
 

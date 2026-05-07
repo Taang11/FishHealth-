@@ -152,7 +152,8 @@
         /* Removed conflicting page transition to allow loader to remain visible */
     </style>
 </head>
-<body class="antialiased font-sans text-slate-800 bg-slate-50">
+<body class="antialiased font-sans text-slate-800 bg-slate-50 relative">
+    <div id="bubble-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
     <!-- Premium Global Loader -->
     <style>
         .loader-bg { background: linear-gradient(135deg, #0B2B40 0%, #1A4D6B 100%); }
@@ -452,7 +453,8 @@
             bubble.style.left = Math.random() * 100 + 'vw';
             bubble.style.animationDuration = Math.random() * 5 + 5 + 's';
             bubble.style.animationDuration = Math.random() * 10 + 10 + 's';
-            document.body.appendChild(bubble);
+            const container = document.getElementById('bubble-container');
+            if(container) container.appendChild(bubble);
             setTimeout(() => bubble.remove(), 20000);
         }
         setInterval(createBubble, 1000);
