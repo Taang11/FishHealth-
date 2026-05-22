@@ -38,7 +38,13 @@
                             <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
                                 <i class="fa-solid fa-user-gear"></i>
                             </div>
-                            <span class="font-bold text-[#0B2B40]">{{ $item->nama }}</span>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-[#0B2B40]">{{ $item->nama }}</span>
+                                <span class="text-[10px] uppercase tracking-widest font-bold {{ $item->subtype == 'dokter' ? 'text-blue-500' : 'text-slate-400' }}">
+                                    <i class="fa-solid {{ $item->subtype == 'dokter' ? 'fa-user-doctor' : 'fa-wrench' }} me-1"></i>
+                                    {{ ucfirst($item->subtype ?? 'teknisi') }}
+                                </span>
+                            </div>
                         </div>
                     </td>
                     <td>

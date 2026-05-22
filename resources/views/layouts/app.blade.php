@@ -198,6 +198,21 @@
         .animate-slide-in { animation: slideIn 0.5s ease-out forwards; }
 
         /* Removed conflicting page transition to allow loader to remain visible */
+        /* Smooth mobile menu */
+        #mobile-menu {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            border-top: 1px solid transparent;
+        }
+        #mobile-menu.active {
+            max-height: 600px;
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            border-top: 1px solid rgba(15, 23, 42, 0.05);
+        }
     </style>
     @stack('styles')
 </head>
@@ -269,6 +284,7 @@
                 <img src="{{ asset('assets/images/logo.png') }}" alt="Fish Health+ Logo" class="h-20 w-auto group-hover:scale-110 transition-transform">
             </a>
 
+            {{-- Desktop Nav --}}
             <div class="hidden lg:flex items-center gap-6">
                 @auth
                     @if(Auth::user()->isAdmin())
@@ -289,9 +305,10 @@
                 @endauth
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
                 @auth
-                    <div class="relative group">
+                    {{-- User dropdown (desktop) --}}
+                    <div class="relative group hidden lg:block">
                         <button class="flex items-center gap-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 p-1.5 pr-4 rounded-xl transition-all">
                             @if(Auth::user()->avatar)
                                 <img src="{{ str_starts_with(Auth::user()->avatar, 'http') ? Auth::user()->avatar : asset(Auth::user()->avatar) }}" alt="Avatar" class="w-8 h-8 rounded-lg object-cover">
@@ -302,7 +319,13 @@
                             @endif
                             <div class="flex flex-col items-start leading-tight">
                                 <span class="text-sm font-bold text-[#0B2B40]">{{ Auth::user()->name }}</span>
-                                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{{ Auth::user()->role }}</span>
+                                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                                    @if(Auth::user()->isTeknisi() && Auth::user()->teknisi)
+                                        {{ ucfirst(Auth::user()->teknisi->subtype ?? 'teknisi') }}
+                                    @else
+                                        {{ Auth::user()->role }}
+                                    @endif
+                                </span>
                             </div>
                             <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
                         </button>
@@ -323,13 +346,74 @@
                             </form>
                         </div>
                     </div>
+
+                    {{-- Hamburger button (mobile only) --}}
+                    <button id="mobile-menu-btn" class="lg:hidden flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all" aria-label="Menu">
+                        <i id="hamburger-icon" class="fa-solid fa-bars text-[#0B2B40]"></i>
+                    </button>
                 @else
                     <a href="{{ route('login') }}" class="text-slate-600 hover:text-[#0B2B40] text-sm font-bold">Masuk</a>
                     <a href="{{ route('register') }}" class="btn-premium py-2 px-6 text-sm">Daftar</a>
                 @endauth
             </div>
         </div>
+
+        {{-- Mobile Menu Panel --}}
+        @auth
+        <div id="mobile-menu" class="lg:hidden space-y-1">
+            {{-- User info --}}
+            <div class="flex items-center gap-3 px-3 py-3 mb-2 bg-slate-50 rounded-xl">
+                @if(Auth::user()->avatar)
+                    <img src="{{ str_starts_with(Auth::user()->avatar, 'http') ? Auth::user()->avatar : asset(Auth::user()->avatar) }}" alt="Avatar" class="w-9 h-9 rounded-lg object-cover">
+                @else
+                    <div class="w-9 h-9 bg-[#0B2B40] rounded-lg flex items-center justify-center text-sm font-bold text-white">
+                        {{ substr(Auth::user()->name, 0, 1) }}
+                    </div>
+                @endif
+                <div>
+                    <p class="text-sm font-bold text-[#0B2B40]">{{ Auth::user()->name }}</p>
+                    <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        @if(Auth::user()->isTeknisi() && Auth::user()->teknisi)
+                            {{ ucfirst(Auth::user()->teknisi->subtype ?? 'teknisi') }}
+                        @else
+                            {{ Auth::user()->role }}
+                        @endif
+                    </p>
+                </div>
+            </div>
+
+            {{-- Nav links --}}
+            @if(Auth::user()->isAdmin())
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-gauge-high w-4 text-teal-500"></i> Dashboard</a>
+                <a href="{{ route('layanan.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-stethoscope w-4 text-teal-500"></i> Layanan</a>
+                <a href="{{ route('teknisi.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-user-gear w-4 text-teal-500"></i> Teknisi</a>
+                <a href="{{ route('ikan.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-fish w-4 text-teal-500"></i> Ikan</a>
+                <a href="{{ route('booking.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-regular fa-calendar-check w-4 text-teal-500"></i> Booking</a>
+                <a href="{{ route('pembayaran.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-money-bill-wave w-4 text-teal-500"></i> Pembayaran</a>
+            @elseif(Auth::user()->isTeknisi())
+                <a href="{{ route('teknisi.dashboard') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-gauge-high w-4 text-teal-500"></i> Dashboard</a>
+                <a href="{{ route('pembayaran.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-clock-rotate-left w-4 text-teal-500"></i> Riwayat</a>
+            @else
+                <a href="{{ route('user.dashboard') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-gauge-high w-4 text-teal-500"></i> Dashboard</a>
+                <a href="{{ route('booking.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-regular fa-calendar-check w-4 text-teal-500"></i> Booking</a>
+                <a href="{{ route('pembayaran.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-money-bill-wave w-4 text-teal-500"></i> Pembayaran</a>
+            @endif
+
+            {{-- Profile & Logout --}}
+            <div class="border-t border-slate-100 pt-2 mt-2 space-y-1">
+                <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-user w-4 text-slate-400"></i> Profil Saya</a>
+                <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-mobile').submit();"
+                   class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                    <i class="fa-solid fa-right-from-bracket w-4"></i> Keluar
+                </a>
+                <form id="logout-form-mobile" action="{{ route('logout') }}" method="POST" class="hidden">@csrf</form>
+            </div>
+        </div>
+        @endauth
     </nav>
+
+
+
 
     <!-- Main Content -->
     <main class="relative z-10 max-w-7xl mx-auto px-6 pb-12">
@@ -386,6 +470,28 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            // ══ HAMBURGER MOBILE MENU ════════════════════════════════════
+            const mobileBtn  = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamIcon    = document.getElementById('hamburger-icon');
+            if (mobileBtn && mobileMenu) {
+                mobileBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    mobileMenu.classList.toggle('active');
+                    hamIcon.classList.toggle('fa-bars');
+                    hamIcon.classList.toggle('fa-xmark');
+                });
+                // Tutup menu jika klik di luar navbar
+                document.addEventListener('click', function(e) {
+                    if (!mobileBtn.closest('nav').contains(e.target)) {
+                        mobileMenu.classList.remove('active');
+                        hamIcon.classList.remove('fa-xmark');
+                        hamIcon.classList.add('fa-bars');
+                    }
+                });
+            }
+
+            // ══ PAGE TRANSITION ══════════════════════════════════════════
             document.querySelectorAll('a').forEach(link => {
                 link.addEventListener('click', function(e) {
                     const href = this.getAttribute('href');

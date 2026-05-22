@@ -250,45 +250,35 @@
             border-radius: 4px;
         }
 
-        /* ========== PERBAIKAN CAPTCHA SEDERHANA & PROFESIONAL ========== */
-        .captcha-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-            width: 100%;
-        }
-        
-        .g-recaptcha {
-            display: inline-block !important;
-        }
-        
+        /* ========== reCAPTCHA v3 — Invisible Badge ========== */
+        /* Badge "Protected by reCAPTCHA" di pojok kanan bawah */
         .grecaptcha-badge {
             visibility: visible !important;
             position: fixed !important;
             bottom: 15px !important;
             right: 15px !important;
             z-index: 999 !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
             border-radius: 8px !important;
-            opacity: 0.85 !important;
+            opacity: 0.9 !important;
+            transition: opacity 0.3s ease !important;
         }
-        
+        .grecaptcha-badge:hover {
+            opacity: 1 !important;
+        }
         @media (max-width: 640px) {
-            .g-recaptcha {
-                transform: scale(0.92);
-                transform-origin: center;
-            }
             .grecaptcha-badge {
                 bottom: 8px !important;
                 right: 8px !important;
-                transform: scale(0.9) !important;
+                transform: scale(0.88) !important;
+                transform-origin: bottom right !important;
             }
         }
 
         /* Removed conflicting page transition to allow loader to remain visible */
     </style>
-    {!! NoCaptcha::renderJs() !!}
+    {{-- reCAPTCHA v3: invisible, tidak perlu interaksi pengguna --}}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.v3_sitekey') }}"></script>
 </head>
 <body>
     <!-- Premium Global Loader -->
@@ -575,10 +565,13 @@
                         </label>
                     </div>
 
-                    <!-- Captcha - Original tanpa kotak tambahan -->
-                    <div class="captcha-wrapper">
-                        {!! NoCaptcha::display() !!}
-                    </div>
+                    {{-- reCAPTCHA v3: token dikirim otomatis via hidden input saat form submit --}}
+                    <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
+                    <p class="text-white/30 text-xs text-center mt-1">
+                        Dilindungi oleh reCAPTCHA &mdash;
+                        <a href="https://policies.google.com/privacy" target="_blank" class="hover:text-white/50 transition-colors">Privasi</a> &amp;
+                        <a href="https://policies.google.com/terms" target="_blank" class="hover:text-white/50 transition-colors">Ketentuan</a> berlaku.
+                    </p>
 
                     <!-- Submit Button -->
                     <div class="space-y-4">
@@ -635,6 +628,54 @@
                 window.location.reload();
             }
         });
+    </script>
+
+    {{-- reCAPTCHA v3: intercept form submit, dapatkan token, lalu submit --}}
+    <script>
+        if (typeof grecaptcha !== 'undefined') {
+            grecaptcha.ready(function () {
+                var form = document.getElementById('register-form');
+                if (!form) return;
+
+                form.addEventListener('submit', function (e) {
+                    var tokenInput = document.getElementById('g-recaptcha-response');
+                    // Jika token sudah ada, biarkan submit berjalan normal
+                    if (tokenInput && tokenInput.value) return;
+
+                    var siteKey = '{{ config('services.recaptcha.v3_sitekey') }}';
+                    if (!siteKey || siteKey === 'your_v3_site_key_here') {
+                        // Jika site key belum dikonfigurasi, submit langsung tanpa reCAPTCHA
+                        return;
+                    }
+
+                    e.preventDefault();
+
+                    // Tampilkan loader sebelum submit
+                    var loader = document.getElementById('global-loader');
+                    if (loader) loader.classList.remove('pointer-events-none', 'opacity-0');
+
+                    // Safe fallback: submit form setelah 2.5 detik jika reCAPTCHA menggantung
+                    var submitTimeout = setTimeout(function () {
+                        console.warn('reCAPTCHA v3 timed out, submitting form anyway...');
+                        form.submit();
+                    }, 2500);
+
+                    grecaptcha.execute(siteKey, { action: 'register' })
+                        .then(function (token) {
+                            clearTimeout(submitTimeout);
+                            if (tokenInput) tokenInput.value = token;
+                            form.submit();
+                        })
+                        .catch(function (err) {
+                            clearTimeout(submitTimeout);
+                            console.error('reCAPTCHA v3 error:', err);
+                            form.submit();
+                        });
+                });
+            });
+        } else {
+            console.warn('reCAPTCHA library not loaded. Captcha validation will be skipped/bypassed.');
+        }
     </script>
 
     <!-- Footer -->

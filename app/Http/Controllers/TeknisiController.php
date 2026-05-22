@@ -25,8 +25,9 @@ class TeknisiController extends Controller
         $request->validate([
             'nama'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|confirmed',
             'no_hp'    => 'required|string|max:20',
+            'subtype'  => 'required|in:teknisi,dokter',
             'alamat'   => 'required|string',
         ]);
 
@@ -38,7 +39,7 @@ class TeknisiController extends Controller
             'role'     => 'teknisi',
         ]);
 
-        $data = $request->only('nama', 'no_hp', 'alamat', 'lat', 'lng');
+        $data = $request->only('nama', 'subtype', 'no_hp', 'alamat', 'lat', 'lng');
         $data['user_id'] = $user->id;
 
         Teknisi::create($data);
@@ -61,6 +62,7 @@ class TeknisiController extends Controller
             'email'    => 'required|email|unique:users,email,' . $data->user_id,
             'password' => 'nullable|string|min:8',
             'no_hp'    => 'required|string|max:20',
+            'subtype'  => 'required|in:teknisi,dokter',
             'alamat'   => 'required|string',
         ]);
 
@@ -76,7 +78,7 @@ class TeknisiController extends Controller
             $data->user->update($userUpdate);
         }
 
-        $data->update($request->only('nama', 'no_hp', 'alamat', 'lat', 'lng'));
+        $data->update($request->only('nama', 'subtype', 'no_hp', 'alamat', 'lat', 'lng'));
 
         return redirect()->route('teknisi.index')->with('success', 'Data teknisi berhasil diupdate.');
     }

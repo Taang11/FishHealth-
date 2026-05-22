@@ -20,9 +20,9 @@
 
     {{-- Map Section --}}
     <div class="glass-premium p-6 mb-8 border-l-4 border-teal-500">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600 shadow-sm">
+                <div class="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center text-teal-600 shadow-sm flex-shrink-0">
                     <i class="fa-solid fa-map-location-dot text-lg"></i>
                 </div>
                 <div>
@@ -31,7 +31,7 @@
                 </div>
             </div>
             
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                 <span id="gps-badge" class="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-full text-[10px] font-bold text-slate-500 flex items-center gap-2 transition-all">
                     <i class="fa-solid fa-spinner fa-spin"></i> Mendeteksi Lokasi...
                 </span>
@@ -125,7 +125,7 @@
                     <select name="teknisi_id" id="select-teknisi" class="input-premium @error('teknisi_id') border-red-500 @enderror" required>
                         <option value="">-- Pilih Teknisi --</option>
                         @foreach($teknisi as $t)
-                            <option value="{{ $t->teknisi_id }}" {{ old('teknisi_id') == $t->teknisi_id ? 'selected' : '' }}>{{ $t->nama }}</option>
+                            <option value="{{ $t->teknisi_id }}" {{ old('teknisi_id') == $t->teknisi_id ? 'selected' : '' }}>{{ $t->nama }} ({{ ucfirst($t->subtype ?? 'teknisi') }})</option>
                         @endforeach
                     </select>
                     @error('teknisi_id')
@@ -280,7 +280,7 @@
                         obj.marker.setIcon(makeMarkerIcon('#10B981', true));
                         map.flyTo(obj.marker.getLatLng(), 15);
                         document.getElementById('selected-teknisi-badge').classList.remove('hidden');
-                        document.getElementById('badge-nama').textContent = obj.data.nama;
+                        document.getElementById('badge-nama').textContent = obj.data.nama + ' (' + (obj.data.subtype ? obj.data.subtype.charAt(0).toUpperCase() + obj.data.subtype.slice(1) : 'Teknisi') + ')';
                     } else {
                         obj.marker.setIcon(makeMarkerIcon('#FBBF24'));
                     }

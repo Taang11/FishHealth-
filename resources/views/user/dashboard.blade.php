@@ -18,7 +18,7 @@
 </div>
 
 <!-- Stats Grid -->
-<div class="grid grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
     <!-- Total Booking -->
     <div class="glass-premium p-6 relative overflow-hidden group">
         <div class="flex flex-col items-center text-center gap-3 relative z-10">

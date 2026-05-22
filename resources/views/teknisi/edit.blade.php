@@ -68,6 +68,19 @@
                     @enderror
                 </div>
             </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mt-6">
+                <div class="space-y-2">
+                    <label class="block text-[#0B2B40] text-sm font-bold">Tipe Role</label>
+                    <select name="subtype" class="input-premium @error('subtype') border-red-500 @enderror" required>
+                        <option value="teknisi" {{ old('subtype', $data->subtype) == 'teknisi' ? 'selected' : '' }}>Teknisi</option>
+                        <option value="dokter" {{ old('subtype', $data->subtype) == 'dokter' ? 'selected' : '' }}>Dokter</option>
+                    </select>
+                    @error('subtype')
+                        <p class="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-widest">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
         </div>
 
         <!-- Section 2: Address (Kemendagri API) -->

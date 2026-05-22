@@ -8,8 +8,10 @@ use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 use App\Mail\WelcomeMail;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class RegisterController extends Controller
 {
@@ -40,15 +42,77 @@ class RegisterController extends Controller
 
     protected function validator(array $data)
     {
+        // Validate reCAPTCHA v3 separately (needs the request IP)
         return Validator::make($data, [
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'g-recaptcha-response' => 'required|captcha',
-        ], [
-            'g-recaptcha-response.required' => 'Mohon selesaikan Captcha untuk melanjutkan.',
-            'g-recaptcha-response.captcha'  => 'Captcha tidak valid, silakan coba lagi.',
         ]);
+    }
+
+    /**
+     * Handle a registration request for the application.
+     * Override to add reCAPTCHA v3 verification before creating the user.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function register(Request $request)
+    {
+        // First run standard validation
+        $this->validator($request->all())->validate();
+
+        // Then verify reCAPTCHA v3
+        $token = $request->input('g-recaptcha-response');
+        if (!$this->verifyRecaptchaV3($token, $request->ip())) {
+            throw ValidationException::withMessages([
+                'g-recaptcha-response' => 'Verifikasi keamanan gagal. Silakan coba lagi.',
+            ]);
+        }
+
+        // Fire registered event and redirect
+        $this->registered($request, $user = $this->create($request->all()));
+
+        return redirect($this->redirectPath());
+    }
+
+    /**
+     * Verify a reCAPTCHA v3 token against Google's API.
+     * Returns true if the token is valid and the score meets the threshold.
+     *
+     * @param  string|null  $token
+     * @param  string       $ip
+     * @return bool
+     */
+    private function verifyRecaptchaV3(?string $token, string $ip): bool
+    {
+        $secret    = config('services.recaptcha.v3_secret');
+        $threshold = (float) config('services.recaptcha.threshold', 0.5);
+
+        // Skip verification in local/testing env when no key is configured
+        if (empty($secret) || $secret === 'your_v3_secret_key_here') {
+            return true;
+        }
+
+        if (empty($token)) {
+            \Log::warning('reCAPTCHA v3 token is empty while secret key is configured.');
+            return false;
+        }
+
+        try {
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret'   => $secret,
+                'response' => $token,
+                'remoteip' => $ip,
+            ]);
+
+            $data = $response->json();
+
+            return ($data['success'] ?? false) && ($data['score'] ?? 0) >= $threshold;
+        } catch (\Exception $e) {
+            \Log::warning('reCAPTCHA v3 verification failed: ' . $e->getMessage());
+            return false;
+        }
     }
 
     protected function create(array $data)

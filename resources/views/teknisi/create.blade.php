@@ -50,17 +50,46 @@
             <div class="grid md:grid-cols-2 gap-6">
                 <div class="space-y-2">
                     <label class="block text-[#0B2B40] text-sm font-bold">Password</label>
-                    <input type="password" name="password" class="input-premium @error('password') border-red-500 @enderror" 
-                           placeholder="Minimal 8 karakter" required>
+                    <div class="relative">
+                        <input type="password" name="password" id="input-password" class="input-premium pr-12 @error('password') border-red-500 @enderror" 
+                               placeholder="Minimal 8 karakter" required>
+                        <button type="button" onclick="togglePassword('input-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0B2B40] transition-colors">
+                            <i class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                    </div>
                     @error('password')
                         <p class="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-widest">{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="space-y-2">
+                    <label class="block text-[#0B2B40] text-sm font-bold">Konfirmasi Password</label>
+                    <div class="relative">
+                        <input type="password" name="password_confirmation" id="input-password-confirm" class="input-premium pr-12" 
+                               placeholder="Ulangi password" required>
+                        <button type="button" onclick="togglePassword('input-password-confirm', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0B2B40] transition-colors">
+                            <i class="fa-solid fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                    <p id="password-match-hint" class="text-[10px] font-bold mt-1 uppercase tracking-widest hidden"></p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mt-6">
+                <div class="space-y-2">
                     <label class="block text-[#0B2B40] text-sm font-bold">Nomor WhatsApp</label>
                     <input type="text" name="no_hp" class="input-premium @error('no_hp') border-red-500 @enderror" 
                            value="{{ old('no_hp') }}" placeholder="Contoh: 62812..." required>
                     @error('no_hp')
+                        <p class="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-widest">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="space-y-2">
+                    <label class="block text-[#0B2B40] text-sm font-bold">Tipe Role</label>
+                    <select name="subtype" class="input-premium @error('subtype') border-red-500 @enderror" required>
+                        <option value="teknisi" {{ old('subtype') == 'teknisi' ? 'selected' : '' }}>Teknisi</option>
+                        <option value="dokter" {{ old('subtype') == 'dokter' ? 'selected' : '' }}>Dokter</option>
+                    </select>
+                    @error('subtype')
                         <p class="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-widest">{{ $message }}</p>
                     @enderror
                 </div>
@@ -671,6 +700,39 @@
     }
 
 })();
+</script>
+
+<script>
+    // ══ TOGGLE SHOW/HIDE PASSWORD ═════════════════════════════════════
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon  = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    // ══ REALTIME PASSWORD MATCH ═══════════════════════════════════════
+    document.getElementById('input-password-confirm').addEventListener('input', function () {
+        const pw    = document.getElementById('input-password').value;
+        const hint  = document.getElementById('password-match-hint');
+        if (this.value === '') {
+            hint.classList.add('hidden');
+            return;
+        }
+        hint.classList.remove('hidden');
+        if (this.value === pw) {
+            hint.textContent = '✓ Password cocok';
+            hint.className = 'text-[10px] font-bold mt-1 uppercase tracking-widest text-emerald-500';
+        } else {
+            hint.textContent = '✕ Password tidak cocok';
+            hint.className = 'text-[10px] font-bold mt-1 uppercase tracking-widest text-red-500';
+        }
+    });
 </script>
 
 <style>

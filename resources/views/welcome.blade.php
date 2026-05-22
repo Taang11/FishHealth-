@@ -149,6 +149,31 @@
             100% { transform: translateY(-20vh) scale(1.2); opacity: 0; }
         }
 
+        /* Slow floating card animation */
+        @keyframes bounceSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-bounce-slow {
+            animation: bounceSlow 4s ease-in-out infinite;
+        }
+
+        /* Smooth mobile menu */
+        #mobile-menu {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            border-top: 1px solid transparent;
+        }
+        #mobile-menu.active {
+            max-height: 400px;
+            opacity: 1;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            border-top: 1px solid rgba(15, 23, 42, 0.05);
+        }
+
         /* Removed conflicting page transition to allow loader to remain visible */
     </style>
 </head>
@@ -232,9 +257,22 @@
                 @endauth
             </div>
 
-            <button class="lg:hidden text-[#0B2B40] text-2xl">
-                <i class="fa-solid fa-bars-staggered"></i>
+            <button id="mobile-menu-btn" class="lg:hidden flex items-center justify-center w-11 h-11 rounded-xl bg-[#0B2B40]/5 hover:bg-[#0B2B40]/10 border border-[#0B2B40]/10 transition-all focus:outline-none" aria-label="Menu">
+                <i id="hamburger-icon" class="fa-solid fa-bars text-[#0B2B40] text-lg transition-transform duration-300"></i>
             </button>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="lg:hidden flex flex-col gap-3">
+            <a href="#home" class="mobile-link text-sm font-semibold text-slate-500 hover:text-[#0B2B40] transition-colors py-2">Beranda</a>
+            <a href="#layanan" class="mobile-link text-sm font-semibold text-slate-500 hover:text-[#0B2B40] transition-colors py-2">Layanan</a>
+            <a href="#cara-kerja" class="mobile-link text-sm font-semibold text-slate-500 hover:text-[#0B2B40] transition-colors py-2">Cara Kerja</a>
+            @auth
+                <a href="{{ route('dashboard') }}" class="btn-premium px-6 py-2.5 text-sm text-center">Dashboard</a>
+            @else
+                <a href="{{ route('login') }}" class="text-sm font-semibold text-slate-500 hover:text-[#0B2B40] transition-colors py-2">Masuk</a>
+                <a href="{{ route('register') }}" class="btn-teal px-8 py-3 text-sm text-center">Daftar Sekarang</a>
+            @endauth
         </div>
     </nav>
 
@@ -298,7 +336,7 @@
                     <img src="{{ asset('assets/images/hero-fish.jpg') }}" alt="Ikan Arwana" class="w-full h-auto transform hover:scale-105 transition-transform duration-1000">
                 </div>
                 <!-- Floating Card -->
-                <div class="absolute -bottom-10 -left-10 glass-card p-6 flex items-center gap-4 animate-bounce-slow shadow-xl z-20">
+                <div class="absolute -bottom-6 left-4 sm:-left-10 sm:-bottom-10 glass-card p-6 flex items-center gap-4 animate-bounce-slow shadow-xl z-20">
                     <div class="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 text-xl shadow-sm">
                         <i class="fa-solid fa-user-doctor"></i>
                     </div>
@@ -442,6 +480,38 @@
             if(window.scrollY > 50) nav.classList.add('scrolled');
             else nav.classList.remove('scrolled');
         });
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const hamburgerIcon = document.getElementById('hamburger-icon');
+
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                mobileMenu.classList.toggle('active');
+                hamburgerIcon.classList.toggle('fa-bars');
+                hamburgerIcon.classList.toggle('fa-xmark');
+            });
+
+            // Close menu when clicking on a link
+            document.querySelectorAll('.mobile-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.remove('active');
+                    hamburgerIcon.classList.remove('fa-xmark');
+                    hamburgerIcon.classList.add('fa-bars');
+                });
+            });
+
+            // Close menu when clicking outside navbar
+            document.addEventListener('click', (e) => {
+                if (!mobileMenuBtn.closest('nav').contains(e.target)) {
+                    mobileMenu.classList.remove('active');
+                    hamburgerIcon.classList.remove('fa-xmark');
+                    hamburgerIcon.classList.add('fa-bars');
+                }
+            });
+        }
 
         // Bubble Generator
         function createBubble() {

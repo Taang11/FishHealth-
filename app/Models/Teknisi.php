@@ -12,6 +12,7 @@ class Teknisi extends Model
     protected $fillable = [
         'user_id',
         'nama',
+        'subtype',
         'no_hp',
         'alamat',
         'lat',

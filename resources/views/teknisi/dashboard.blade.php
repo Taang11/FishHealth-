@@ -7,7 +7,8 @@
 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
     <div>
         <h1 class="text-3xl font-extrabold text-[#0B2B40] tracking-tight">
-            <i class="fa-solid fa-user-doctor text-teal-500 me-3"></i>Dashboard Teknisi
+            <i class="fa-solid {{ $teknisi && $teknisi->subtype == 'dokter' ? 'fa-user-doctor' : 'fa-user-gear' }} text-teal-500 me-3"></i>
+            Dashboard {{ $teknisi ? ucfirst($teknisi->subtype ?? 'Teknisi') : 'Teknisi' }}
         </h1>
         <p class="text-slate-500 text-sm mt-1">Ringkasan pekerjaan dan profil Anda</p>
     </div>
@@ -70,6 +71,16 @@
         <div class="w-1.5 h-6 bg-[#0B2B40] rounded-full"></div>
         <h5 class="text-lg font-bold text-[#0B2B40]">Profil Saya</h5>
     </div>
+    {{-- Subtype badge --}}
+    @if($teknisi)
+    <div class="mb-4">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border
+            {{ $teknisi->subtype == 'dokter' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
+            <i class="fa-solid {{ $teknisi->subtype == 'dokter' ? 'fa-user-doctor' : 'fa-wrench' }}"></i>
+            {{ ucfirst($teknisi->subtype ?? 'teknisi') }}
+        </span>
+    </div>
+    @endif
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">

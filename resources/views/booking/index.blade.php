@@ -37,7 +37,17 @@
                 @forelse($booking as $index => $item)
                 <tr>
                     <td class="text-slate-400 font-bold text-center text-sm">{{ $index + 1 }}</td>
-                    <td class="font-bold text-[#0B2B40]">{{ $item->teknisi->nama ?? '-' }}</td>
+                    <td>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-[#0B2B40]">{{ $item->teknisi->nama ?? '-' }}</span>
+                            @if($item->teknisi)
+                                <span class="text-[10px] uppercase tracking-widest font-bold {{ $item->teknisi->subtype == 'dokter' ? 'text-blue-500' : 'text-slate-400' }}">
+                                    <i class="fa-solid {{ $item->teknisi->subtype == 'dokter' ? 'fa-user-doctor' : 'fa-wrench' }} me-1"></i>
+                                    {{ ucfirst($item->teknisi->subtype ?? 'teknisi') }}
+                                </span>
+                            @endif
+                        </div>
+                    </td>
                     <td>
                         <div class="flex items-center gap-3">
                             @if($item->ikan_foto)

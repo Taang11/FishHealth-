@@ -40,9 +40,19 @@ return [
     ],
 
     'google' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect' => env('GOOGLE_REDIRECT_URI'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    /*
+     * reCAPTCHA v3 — daftarkan keys di: https://www.google.com/recaptcha/admin/create
+     * Pilih "Score based (v3)" saat mendaftar.
+     */
+    'recaptcha' => [
+        'v3_sitekey' => env('RECAPTCHA_V3_SITEKEY', ''),
+        'v3_secret'  => env('RECAPTCHA_V3_SECRET', ''),
+        'threshold'  => env('RECAPTCHA_V3_THRESHOLD', 0.5),
     ],
 
 ];
