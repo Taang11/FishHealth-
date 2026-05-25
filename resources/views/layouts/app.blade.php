@@ -52,14 +52,23 @@
         .glass-premium {
             background: white;
             border: 1px solid rgba(15, 23, 42, 0.05);
-            border-radius: 24px;
+            border-radius: 20px;
             box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .glass-premium:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+        /* Only lift cards on pointer devices (non-touch) */
+        @media (hover: hover) and (pointer: fine) {
+            .glass-premium:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .glass-premium {
+                border-radius: 16px;
+            }
         }
 
         /* Table Styling */
@@ -70,13 +79,21 @@
         }
 
         .table-premium thead th {
-            padding: 12px 20px;
+            padding: 8px 12px;
             text-align: left;
             color: #64748B;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             font-weight: 700;
+        }
+
+        @media (min-width: 640px) {
+            .table-premium thead th {
+                padding: 12px 20px;
+                font-size: 0.75rem;
+                letter-spacing: 1px;
+            }
         }
 
         .table-premium tbody tr {
@@ -92,8 +109,16 @@
         }
 
         .table-premium tbody td {
-            padding: 16px 20px;
+            padding: 10px 12px;
             color: #1E293B;
+            font-size: 0.825rem;
+        }
+
+        @media (min-width: 640px) {
+            .table-premium tbody td {
+                padding: 16px 20px;
+                font-size: 0.875rem;
+            }
         }
 
         .table-premium tbody tr td:first-child { border-top-left-radius: 16px; border-bottom-left-radius: 16px; }
@@ -185,10 +210,15 @@
         }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #F1F5F9; }
         ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        /* Smooth touch scrolling for responsive tables */
+        .overflow-x-auto {
+            -webkit-overflow-scrolling: touch;
+        }
 
         /* Animation for notifications */
         @keyframes slideIn {
@@ -196,6 +226,29 @@
             to { transform: translateX(0); opacity: 1; }
         }
         .animate-slide-in { animation: slideIn 0.5s ease-out forwards; }
+
+        /* Page heading responsive */
+        .page-title {
+            font-size: clamp(1.4rem, 5vw, 1.875rem);
+            font-weight: 800;
+            color: #0B2B40;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        /* Responsive badge pill */
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
 
         /* Removed conflicting page transition to allow loader to remain visible */
         /* Smooth mobile menu */
@@ -278,10 +331,10 @@
     <div class="bg-pattern"></div>
 
     <!-- Navigation -->
-    <nav class="glass-nav sticky top-0 w-full py-4 px-6 mb-8 shadow-sm">
+    <nav class="glass-nav sticky top-0 w-full py-2 sm:py-3 px-3 sm:px-6 mb-6 sm:mb-8 shadow-sm">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <a href="{{ url('/') }}" class="flex items-center group">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="Fish Health+ Logo" class="h-20 w-auto group-hover:scale-110 transition-transform">
+                <img src="{{ asset('assets/images/logo.png') }}" alt="Fish Health+ Logo" class="h-12 sm:h-16 md:h-20 w-auto group-hover:scale-110 transition-transform">
             </a>
 
             {{-- Desktop Nav --}}
@@ -299,6 +352,7 @@
                         <a href="{{ route('pembayaran.index') }}" class="text-slate-600 hover:text-[#0B2B40] transition-colors text-sm font-semibold">Riwayat</a>
                     @else
                         <a href="{{ route('user.dashboard') }}" class="text-slate-600 hover:text-[#0B2B40] transition-colors text-sm font-semibold">Dashboard</a>
+                        <a href="{{ route('layanan.index') }}" class="text-slate-600 hover:text-[#0B2B40] transition-colors text-sm font-semibold">Layanan</a>
                         <a href="{{ route('booking.index') }}" class="text-slate-600 hover:text-[#0B2B40] transition-colors text-sm font-semibold">Booking</a>
                         <a href="{{ route('pembayaran.index') }}" class="text-slate-600 hover:text-[#0B2B40] transition-colors text-sm font-semibold">Pembayaran</a>
                     @endif
@@ -395,6 +449,7 @@
                 <a href="{{ route('pembayaran.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-clock-rotate-left w-4 text-teal-500"></i> Riwayat</a>
             @else
                 <a href="{{ route('user.dashboard') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-gauge-high w-4 text-teal-500"></i> Dashboard</a>
+                <a href="{{ route('layanan.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-stethoscope w-4 text-teal-500"></i> Layanan</a>
                 <a href="{{ route('booking.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-regular fa-calendar-check w-4 text-teal-500"></i> Booking</a>
                 <a href="{{ route('pembayaran.index') }}" class="flex items-center gap-3 px-3 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"><i class="fa-solid fa-money-bill-wave w-4 text-teal-500"></i> Pembayaran</a>
             @endif
@@ -416,25 +471,25 @@
 
 
     <!-- Main Content -->
-    <main class="relative z-10 max-w-7xl mx-auto px-6 pb-12">
+    <main class="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pb-12">
         <!-- Alerts -->
-        <div class="fixed top-24 right-6 w-80 space-y-3 z-[100]">
+        <div class="fixed top-16 sm:top-20 right-3 sm:right-6 w-[calc(100vw-1.5rem)] max-w-xs sm:w-80 space-y-3 z-[100]">
             @if(session('success'))
-            <div class="bg-white border-l-4 border-emerald-500 shadow-2xl p-4 flex gap-3 items-start animate-slide-in rounded-r-xl">
-                <i class="fa-solid fa-check-circle text-emerald-500 mt-0.5"></i>
-                <div>
+            <div class="bg-white border-l-4 border-emerald-500 shadow-2xl p-3 sm:p-4 flex gap-3 items-start animate-slide-in rounded-r-xl">
+                <i class="fa-solid fa-check-circle text-emerald-500 mt-0.5 flex-shrink-0"></i>
+                <div class="min-w-0">
                     <p class="text-sm font-bold text-[#0B2B40]">Berhasil</p>
-                    <p class="text-xs text-slate-500 mt-1">{{ session('success') }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5 break-words">{{ session('success') }}</p>
                 </div>
             </div>
             @endif
 
             @if(session('error'))
-            <div class="bg-white border-l-4 border-red-500 shadow-2xl p-4 flex gap-3 items-start animate-slide-in rounded-r-xl">
-                <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5"></i>
-                <div>
+            <div class="bg-white border-l-4 border-red-500 shadow-2xl p-3 sm:p-4 flex gap-3 items-start animate-slide-in rounded-r-xl">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 flex-shrink-0"></i>
+                <div class="min-w-0">
                     <p class="text-sm font-bold text-[#0B2B40]">Gagal</p>
-                    <p class="text-xs text-slate-500 mt-1">{{ session('error') }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5 break-words">{{ session('error') }}</p>
                 </div>
             </div>
             @endif
@@ -444,7 +499,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="relative z-10 py-12 border-t border-slate-200 mt-12 bg-white">
+    <footer class="relative z-10 py-8 sm:py-12 border-t border-slate-200 mt-12 bg-white">
         <div class="max-w-7xl mx-auto px-6 text-center">
             <p class="text-slate-400 text-xs font-medium">
                 © {{ date('Y') }} Klinik Ikan Premium. Professional Fish Healthcare Provider.

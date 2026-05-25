@@ -463,9 +463,10 @@
             </div>
             <p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-8">© {{ date('Y') }} Klinik Ikan Premium. Professional Fish Healthcare Provider.</p>
             <div class="flex justify-center gap-6">
-                <a href="#" class="text-slate-300 hover:text-[#0B2B40] transition-colors"><i class="fa-brands fa-instagram text-xl"></i></a>
+                <a href="https://www.instagram.com/ryze1112/?utm_source=ig_web_button_share_sheet" class="text-slate-300 hover:text-[#0B2B40] transition-colors"><i class="fa-brands fa-instagram text-xl"></i></a>
                 <a href="#" class="text-slate-300 hover:text-[#0B2B40] transition-colors"><i class="fa-brands fa-facebook text-xl"></i></a>
-                <a href="#" class="text-slate-300 hover:text-[#0B2B40] transition-colors"><i class="fa-brands fa-whatsapp text-xl"></i></a>
+                <a href="https://www.tiktok.com/@sheesss_22?is_from_webapp=1&sender_device=pc" target="_blank" rel="noopener noreferrer" class="text-slate-300 hover:text-[#0B2B40] transition-colors"><i class="fa-brands fa-tiktok text-xl"></i></a>
+                <a href="https://wa.me/6281319219038" target="_blank" rel="noopener noreferrer" class="text-slate-300 hover:text-[#25D366] transition-colors"><i class="fa-brands fa-whatsapp text-xl"></i></a>
             </div>
         </div>
     </footer>

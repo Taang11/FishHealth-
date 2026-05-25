@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Teknisi;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Pembayaran;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -14,17 +16,20 @@ class DashboardController extends Controller
 
         if (!$teknisi) {
             return view('teknisi.dashboard', [
-                'teknisi'          => null,
-                'stats'            => [],
+                'teknisi'           => null,
+                'stats'             => [],
                 'upcoming_bookings' => collect(),
+                'chartData'         => array_fill(1, 12, 0),
+                'year'              => date('Y'),
+                'totalRevenue'      => 0,
             ]);
         }
 
         $stats = [
-            'total_booking'   => Booking::where('teknisi_id', $teknisi->teknisi_id)->count(),
-            'pending'         => Booking::where('teknisi_id', $teknisi->teknisi_id)->where('status', 'pending')->count(),
-            'accepted'        => Booking::where('teknisi_id', $teknisi->teknisi_id)->where('status', 'accepted')->count(),
-            'selesai'         => Booking::where('teknisi_id', $teknisi->teknisi_id)->where('status', 'selesai')->count(),
+            'total_booking' => Booking::where('teknisi_id', $teknisi->teknisi_id)->count(),
+            'pending'       => Booking::where('teknisi_id', $teknisi->teknisi_id)->where('status', 'pending')->count(),
+            'accepted'      => Booking::where('teknisi_id', $teknisi->teknisi_id)->where('status', 'accepted')->count(),
+            'selesai'       => Booking::where('teknisi_id', $teknisi->teknisi_id)->where('status', 'selesai')->count(),
         ];
 
         $upcoming_bookings = Booking::with(['user', 'layanan'])
@@ -35,7 +40,29 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        return view('teknisi.dashboard', compact('teknisi', 'stats', 'upcoming_bookings'));
+        // Monthly revenue chart - this technician only (current year)
+        $year = date('Y');
+        $monthlyRevenue = Pembayaran::where('pembayaran.status', 'paid')
+            ->whereYear('pembayaran.created_at', $year)
+            ->join('booking', 'pembayaran.booking_id', '=', 'booking.booking_id')
+            ->where('booking.teknisi_id', $teknisi->teknisi_id)
+            ->select(
+                DB::raw('MONTH(pembayaran.created_at) as month'),
+                DB::raw('SUM(pembayaran.jumlah) as total')
+            )
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+
+        $chartData = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $chartData[$m] = $monthlyRevenue[$m] ?? 0;
+        }
+
+        $totalRevenue = array_sum($chartData);
+
+        return view('teknisi.dashboard', compact('teknisi', 'stats', 'upcoming_bookings', 'chartData', 'year', 'totalRevenue'));
     }
 
     public function updateStatus(Booking $booking, $status)

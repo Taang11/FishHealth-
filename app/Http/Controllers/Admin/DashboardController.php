@@ -8,6 +8,7 @@ use App\Models\Layanan;
 use App\Models\Teknisi;
 use App\Models\Pembayaran;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -33,6 +34,37 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'latest_bookings', 'latest_pembayaran'));
+        // Monthly revenue chart - all technicians combined (current year)
+        $year = date('Y');
+        $monthlyRevenue = Pembayaran::where('status', 'paid')
+            ->whereYear('created_at', $year)
+            ->select(
+                DB::raw('MONTH(created_at) as month'),
+                DB::raw('SUM(jumlah) as total')
+            )
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+
+        $chartData = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $chartData[$m] = $monthlyRevenue[$m] ?? 0;
+        }
+
+        // Per-technician revenue for the current year
+        $perTeknisiRevenue = Pembayaran::where('pembayaran.status', 'paid')
+            ->whereYear('pembayaran.created_at', $year)
+            ->join('booking', 'pembayaran.booking_id', '=', 'booking.booking_id')
+            ->join('teknisi', 'booking.teknisi_id', '=', 'teknisi.teknisi_id')
+            ->select(
+                'teknisi.nama',
+                DB::raw('SUM(pembayaran.jumlah) as total')
+            )
+            ->groupBy('teknisi.teknisi_id', 'teknisi.nama')
+            ->orderByDesc('total')
+            ->get();
+
+        return view('admin.dashboard', compact('stats', 'latest_bookings', 'latest_pembayaran', 'chartData', 'perTeknisiRevenue', 'year'));
     }
 }
