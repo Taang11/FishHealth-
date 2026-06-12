@@ -33,6 +33,9 @@ Route::prefix('api/wilayah')->name('wilayah.')->group(function () {
     Route::get('/kelurahan/{id}',    [WilayahController::class, 'getVillages'])->name('kelurahan');
 });
 
+// ── Layanan by subtype (AJAX, requires auth) ──────────
+Route::middleware('auth')->get('/api/layanan-by-subtype', [LayananController::class, 'bySubtype'])->name('layanan.by-subtype');
+
 // ===================== REDIRECT SETELAH LOGIN =====================
 Route::get('/dashboard', function () {
     $role = auth()->user()->role;
@@ -127,3 +130,13 @@ Route::middleware(['auth'])->group(function () {
 
 // ===================== CALLBACK MIDTRANS =====================
 Route::post('/midtrans/callback', [PembayaranController::class, 'callback']);
+
+Route::get('/test-mail-web', function() {
+    try {
+        $user = \App\Models\User::first() ?? new \App\Models\User(['name' => 'Test', 'email' => 'test@example.com']);
+        \Illuminate\Support\Facades\Mail::to('asterixaether6@gmail.com')->send(new \App\Mail\WelcomeMail($user));
+        return 'Mail sent successfully!';
+    } catch (\Exception $e) {
+        return 'Error: ' . $e->getMessage() . "\n\n" . $e->getTraceAsString();
+    }
+});

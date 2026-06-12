@@ -26,6 +26,11 @@
             <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
             <input type="text" id="searchLayanan" placeholder="Cari nama layanan..." class="input-premium pl-9 text-sm py-2 w-full" oninput="filterLayanan()">
         </div>
+        <select id="subtypeLayanan" class="input-premium text-sm py-2 w-full sm:w-44" onchange="filterLayanan()">
+            <option value="">Semua Tipe</option>
+            <option value="teknisi">Teknisi Kolam</option>
+            <option value="dokter">Dokter Ikan</option>
+        </select>
         <select id="sortLayanan" class="input-premium text-sm py-2 w-full sm:w-44" onchange="filterLayanan()">
             <option value="">Urut: Default</option>
             <option value="asc">Harga: Rendah ke Tinggi</option>
@@ -36,7 +41,7 @@
     <!-- Mobile Card List View -->
     <div class="block sm:hidden space-y-3.5 mb-4" id="layananMobileList">
         @forelse($data as $index => $item)
-        <div class="mobile-card-item bg-slate-50/50 p-4 rounded-xl border border-slate-100 shadow-sm space-y-3" data-harga="{{ $item->harga }}">
+        <div class="mobile-card-item bg-slate-50/50 p-4 rounded-xl border border-slate-100 shadow-sm space-y-3" data-harga="{{ $item->harga }}" data-subtype="{{ $item->subtype }}">
             <!-- Header: No, Nama & Harga -->
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2 min-w-0">
@@ -44,7 +49,12 @@
                     <div class="w-9 h-9 flex-shrink-0 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
                         <i class="fa-solid fa-hand-holding-medical"></i>
                     </div>
-                    <p class="font-bold text-[#0B2B40] text-sm leading-tight">{{ $item->nama_layanan }}</p>
+                    <div class="min-w-0">
+                        <p class="font-bold text-[#0B2B40] text-sm leading-tight truncate">{{ $item->nama_layanan }}</p>
+                        <span class="inline-block px-2 py-0.5 mt-1 rounded text-[9px] font-extrabold uppercase tracking-wider {{ $item->subtype === 'dokter' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-blue-50 text-blue-600 border border-blue-100' }}">
+                            {{ $item->subtype === 'dokter' ? 'Dokter Ikan' : 'Teknisi Kolam' }}
+                        </span>
+                    </div>
                 </div>
                 <div class="flex-shrink-0 text-right">
                     <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Harga</p>
@@ -82,6 +92,7 @@
                 <tr>
                     <th width="5%" class="text-center">No</th>
                     <th>Nama Layanan</th>
+                    <th>Tipe Layanan</th>
                     <th>Harga Layanan</th>
                     @if(auth()->user()->isAdmin())
                     <th width="15%" class="text-center">Aksi</th>
@@ -90,7 +101,7 @@
             </thead>
             <tbody>
                 @forelse($data as $index => $item)
-                <tr data-harga="{{ $item->harga }}">
+                <tr data-harga="{{ $item->harga }}" data-subtype="{{ $item->subtype }}">
                     <td class="text-slate-400 font-bold text-center text-sm row-no">{{ $index + 1 }}</td>
                     <td>
                         <div class="flex items-center gap-3">
@@ -99,6 +110,11 @@
                             </div>
                             <span class="font-bold text-[#0B2B40]">{{ $item->nama_layanan }}</span>
                         </div>
+                    </td>
+                    <td>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold {{ $item->subtype === 'dokter' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-blue-50 text-blue-600 border border-blue-100' }}">
+                            {{ $item->subtype === 'dokter' ? 'Dokter Ikan' : 'Teknisi Kolam' }}
+                        </span>
                     </td>
                     <td>
                         <div class="flex items-center gap-2 text-emerald-600 font-black">
@@ -125,7 +141,7 @@
                 </tr>
                 @empty
                 <tr id="emptyRow">
-                    <td colspan="{{ auth()->user()->isAdmin() ? 4 : 3 }}" class="text-center text-slate-400 py-12 italic">Belum ada data layanan.</td>
+                    <td colspan="{{ auth()->user()->isAdmin() ? 5 : 4 }}" class="text-center text-slate-400 py-12 italic">Belum ada data layanan.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -139,13 +155,17 @@
 <script>
 function filterLayanan() {
     const q = document.getElementById('searchLayanan').value.toLowerCase().trim();
+    const subtype = document.getElementById('subtypeLayanan').value;
     const sort = document.getElementById('sortLayanan').value;
 
     // 1. Filter & Sort Desktop Rows
     const tbody = document.querySelector('#layananTable tbody');
     let rows = Array.from(tbody.querySelectorAll('tr[data-harga]'));
     rows.forEach(row => {
-        row.style.display = (!q || row.textContent.toLowerCase().includes(q)) ? '' : 'none';
+        const rowSubtype = row.getAttribute('data-subtype');
+        const matchesQuery = !q || row.textContent.toLowerCase().includes(q);
+        const matchesSubtype = !subtype || rowSubtype === subtype;
+        row.style.display = (matchesQuery && matchesSubtype) ? '' : 'none';
     });
     if (sort) {
         const visible = rows.filter(r => r.style.display !== 'none');
@@ -168,7 +188,10 @@ function filterLayanan() {
     const mobileContainer = document.getElementById('layananMobileList');
     let cards = Array.from(mobileContainer.querySelectorAll('.mobile-card-item'));
     cards.forEach(card => {
-        card.style.display = (!q || card.textContent.toLowerCase().includes(q)) ? '' : 'none';
+        const cardSubtype = card.getAttribute('data-subtype');
+        const matchesQuery = !q || card.textContent.toLowerCase().includes(q);
+        const matchesSubtype = !subtype || cardSubtype === subtype;
+        card.style.display = (matchesQuery && matchesSubtype) ? '' : 'none';
     });
     if (sort) {
         const visibleCards = cards.filter(c => c.style.display !== 'none');

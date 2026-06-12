@@ -46,6 +46,13 @@ class GoogleController extends Controller
                     'role'      => 'user',
                 ]);
 
+                // Send welcome email notification
+                try {
+                    \Illuminate\Support\Facades\Mail::to($newUser->email)->send(new \App\Mail\WelcomeMail($newUser));
+                } catch (\Exception $e) {
+                    \Log::error('Gagal mengirim email welcome Google: ' . $e->getMessage());
+                }
+
                 Auth::login($newUser);
                 return redirect()->intended('dashboard');
             }

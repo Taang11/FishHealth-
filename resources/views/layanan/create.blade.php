@@ -54,6 +54,22 @@
                 <p class="text-[10px] text-slate-400 font-medium uppercase tracking-widest mt-1">Hanya angka saja, tanpa titik atau koma.</p>
             </div>
 
+            <div class="space-y-2">
+                <label class="block text-[#0B2B40] text-sm font-bold mb-2">Tipe Layanan (Subtype)</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-users-gear"></i>
+                    </div>
+                    <select name="subtype" class="input-premium pl-11 @error('subtype') border-red-500 @enderror" required>
+                        <option value="teknisi" {{ old('subtype') === 'teknisi' ? 'selected' : '' }}>Teknisi Kolam (Fisik)</option>
+                        <option value="dokter" {{ old('subtype') === 'dokter' ? 'selected' : '' }}>Dokter Ikan (Medis)</option>
+                    </select>
+                </div>
+                @error('subtype')
+                    <p class="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-widest">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="pt-4">
                 <button type="submit" class="btn-premium w-full py-4 text-lg group">
                     <i class="fa-solid fa-cloud-arrow-up me-2 group-hover:scale-110 transition-transform"></i>

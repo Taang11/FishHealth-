@@ -57,6 +57,17 @@ class BookingController extends Controller
             'jam'        => 'required',
         ]);
 
+        // ── Server-side: pastikan layanan sesuai subtype teknisi ──
+        $teknisi = \App\Models\Teknisi::findOrFail($request->teknisi_id);
+        $layanan = \App\Models\Layanan::findOrFail($request->layanan_id);
+
+        if ($teknisi->subtype !== $layanan->subtype) {
+            $label = $teknisi->subtype === 'dokter' ? 'Dokter Ikan' : 'Teknisi Kolam';
+            return back()
+                ->withInput()
+                ->with('error', "Layanan yang dipilih tidak sesuai dengan tipe \"{$label}\". Silakan pilih layanan yang benar.");
+        }
+
         // Cek double booking
         $cek = Booking::where('teknisi_id', $request->teknisi_id)
             ->where('tanggal', $request->tanggal)

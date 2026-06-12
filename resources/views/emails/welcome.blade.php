@@ -432,7 +432,7 @@
         <div class="email-header">
             <div class="logo-wrapper">
                 <div class="logo-image">
-                    <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('assets/images/logo.png'))) }}" alt="Fish Health Logo">
+                    <img src="{{ $message->embed(public_path('assets/images/logo.png')) }}" alt="Fish Health Logo">
                 </div>
             </div>
             <h1 class="header-title">Selamat Datang! 🐠</h1>

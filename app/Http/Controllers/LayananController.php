@@ -30,9 +30,10 @@ class LayananController extends Controller
         $request->validate([
             'nama_layanan' => 'required|string|max:255',
             'harga'        => 'required|integer|min:0',
+            'subtype'      => 'required|in:teknisi,dokter',
         ]);
 
-        Layanan::create($request->only('nama_layanan', 'harga'));
+        Layanan::create($request->only('nama_layanan', 'harga', 'subtype'));
         return redirect()->route('layanan.index')->with('success', 'Layanan berhasil ditambahkan.');
     }
 
@@ -55,10 +56,11 @@ class LayananController extends Controller
         $request->validate([
             'nama_layanan' => 'required|string|max:255',
             'harga'        => 'required|integer|min:0',
+            'subtype'      => 'required|in:teknisi,dokter',
         ]);
 
         $data = Layanan::findOrFail($id);
-        $data->update($request->only('nama_layanan', 'harga'));
+        $data->update($request->only('nama_layanan', 'harga', 'subtype'));
 
         return redirect()->route('layanan.index')->with('success', 'Layanan berhasil diupdate.');
     }
@@ -71,5 +73,25 @@ class LayananController extends Controller
 
         Layanan::destroy($id);
         return redirect()->route('layanan.index')->with('success', 'Layanan berhasil dihapus.');
+    }
+
+    /**
+     * API endpoint: return layanan filtered by subtype (JSON)
+     * GET /api/layanan-by-subtype?subtype=teknisi|dokter
+     */
+    public function bySubtype(Request $request)
+    {
+        $subtype = $request->query('subtype', 'teknisi');
+
+        if (!in_array($subtype, ['teknisi', 'dokter'])) {
+            return response()->json(['error' => 'Invalid subtype'], 422);
+        }
+
+        $layanan = Layanan::forSubtype($subtype)
+            ->select('layanan_id', 'nama_layanan', 'harga')
+            ->orderBy('nama_layanan')
+            ->get();
+
+        return response()->json($layanan);
     }
 }

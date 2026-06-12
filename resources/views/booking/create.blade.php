@@ -136,12 +136,13 @@
                 <!-- Select Service -->
                 <div class="space-y-2">
                     <label class="block text-[#0B2B40] text-sm font-bold mb-2">Pilih Layanan</label>
-                    <select name="layanan_id" class="input-premium @error('layanan_id') border-red-500 @enderror" required>
+                    <select name="layanan_id" id="select-layanan" class="input-premium @error('layanan_id') border-red-500 @enderror" required>
                         <option value="">-- Pilih Layanan --</option>
                         @foreach($layanan as $l)
                             <option value="{{ $l->layanan_id }}" {{ old('layanan_id') == $l->layanan_id ? 'selected' : '' }}>{{ $l->nama_layanan }} - Rp {{ number_format($l->harga, 0, ',', '.') }}</option>
                         @endforeach
                     </select>
+                    <p id="layanan-filter-info" class="text-[10px] text-slate-400 mt-1.5 uppercase font-bold tracking-wider hidden"></p>
                     @error('layanan_id')
                         <p class="text-red-500 text-[10px] font-bold mt-1 uppercase tracking-widest">{{ $message }}</p>
                     @enderror
@@ -191,6 +192,8 @@
 
 <script>
     const teknisiData = @json($teknisi->filter(fn($t) => !is_null($t->lat) && !is_null($t->lng))->values());
+    const allLayanan = @json($layanan);
+    const allTeknisi = @json($teknisi);
 
     (function () {
         const DEFAULT_LAT  = -6.2088;
@@ -273,8 +276,80 @@
                 teknisiLayers.push({ id: t.teknisi_id, marker, data: t });
             });
 
+            // --- Dynamic Services Filtering by Subtype ---
+            function filterLayananBySubtype(subtype) {
+                const selectLayanan = document.getElementById('select-layanan');
+                const infoText = document.getElementById('layanan-filter-info');
+                
+                selectLayanan.innerHTML = '<option value="">-- Pilih Layanan --</option>';
+                
+                if (infoText) {
+                    infoText.classList.remove('hidden');
+                    infoText.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-teal-500 me-1"></i> Memuat layanan...';
+                }
+                
+                fetch(`/api/layanan-by-subtype?subtype=${subtype}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response not ok');
+                        return response.json();
+                    })
+                    .then(data => {
+                        data.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.layanan_id;
+                            option.textContent = `${item.nama_layanan} - Rp ${new Intl.NumberFormat('id-ID').format(item.harga)}`;
+                            selectLayanan.appendChild(option);
+                        });
+                        
+                        if (infoText) {
+                            const label = subtype === 'dokter' ? 'Dokter Ikan (Medis)' : 'Teknisi Kolam (Fisik)';
+                            infoText.innerHTML = `<i class="fa-solid fa-filter text-teal-500 me-1"></i> Menampilkan layanan khusus <strong>${label}</strong>`;
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('AJAX failed, falling back to local list:', err);
+                        const filtered = allLayanan.filter(l => l.subtype === subtype);
+                        filtered.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.layanan_id;
+                            option.textContent = `${item.nama_layanan} - Rp ${new Intl.NumberFormat('id-ID').format(item.harga)}`;
+                            selectLayanan.appendChild(option);
+                        });
+                        
+                        if (infoText) {
+                            const label = subtype === 'dokter' ? 'Dokter Ikan (Medis)' : 'Teknisi Kolam (Fisik)';
+                            infoText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500 me-1"></i> Menampilkan layanan khusus <strong>${label}</strong>`;
+                        }
+                    });
+            }
+
+            function resetLayananDropdown() {
+                const selectLayanan = document.getElementById('select-layanan');
+                const infoText = document.getElementById('layanan-filter-info');
+                
+                selectLayanan.innerHTML = '<option value="">-- Pilih Layanan --</option>';
+                allLayanan.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.layanan_id;
+                    option.textContent = `${item.nama_layanan} - Rp ${new Intl.NumberFormat('id-ID').format(item.harga)}`;
+                    selectLayanan.appendChild(option);
+                });
+                
+                if (infoText) {
+                    infoText.classList.add('hidden');
+                }
+            }
+
             document.getElementById('select-teknisi').addEventListener('change', function() {
                 const val = parseInt(this.value);
+                const selectedTeknisi = allTeknisi.find(t => t.teknisi_id === val);
+                
+                if (selectedTeknisi) {
+                    filterLayananBySubtype(selectedTeknisi.subtype || 'teknisi');
+                } else {
+                    resetLayananDropdown();
+                }
+                
                 teknisiLayers.forEach(obj => {
                     if (obj.id === val) {
                         obj.marker.setIcon(makeMarkerIcon('#10B981', true));
@@ -303,6 +378,39 @@
             // Initial sync for old values
             syncManualInput('ikan_nama');
             syncManualInput('ikan_jenis');
+
+            // Handle pre-selected technician on page load (e.g. from redirect with old inputs)
+            const initialTeknisiVal = document.getElementById('select-teknisi').value;
+            if (initialTeknisiVal) {
+                const selectedTeknisi = allTeknisi.find(t => t.teknisi_id === parseInt(initialTeknisiVal));
+                if (selectedTeknisi) {
+                    const selectLayanan = document.getElementById('select-layanan');
+                    const infoText = document.getElementById('layanan-filter-info');
+                    const subtype = selectedTeknisi.subtype || 'teknisi';
+                    
+                    selectLayanan.innerHTML = '<option value="">-- Pilih Layanan --</option>';
+                    const filtered = allLayanan.filter(l => l.subtype === subtype);
+                    
+                    const oldLayananId = "{{ old('layanan_id') }}";
+                    filtered.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.layanan_id;
+                        option.textContent = `${item.nama_layanan} - Rp ${new Intl.NumberFormat('id-ID').format(item.harga)}`;
+                        if (oldLayananId && parseInt(oldLayananId) == item.layanan_id) {
+                            option.selected = true;
+                        }
+                        selectLayanan.appendChild(option);
+                    });
+                    
+                    if (infoText) {
+                        infoText.classList.remove('hidden');
+                        const label = subtype === 'dokter' ? 'Dokter Ikan (Medis)' : 'Teknisi Kolam (Fisik)';
+                        infoText.innerHTML = `<i class="fa-solid fa-filter text-teal-500 me-1"></i> Menampilkan layanan khusus <strong>${label}</strong>`;
+                    }
+                }
+            } else {
+                document.getElementById('select-layanan').innerHTML = '<option value="">-- Pilih Teknisi Terlebih Dahulu --</option>';
+            }
         });
     })();
 </script>

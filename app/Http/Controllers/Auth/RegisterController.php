@@ -70,8 +70,19 @@ class RegisterController extends Controller
             ]);
         }
 
-        // Fire registered event and redirect
-        $this->registered($request, $user = $this->create($request->all()));
+        // Create the user
+        $user = $this->create($request->all());
+
+        // Dispatch standard Registered event
+        event(new \Illuminate\Auth\Events\Registered($user));
+
+        // Auto log in the user after registration
+        $this->guard()->login($user);
+
+        // Trigger the registered hook (sends welcome email)
+        if ($response = $this->registered($request, $user)) {
+            return $response;
+        }
 
         return redirect($this->redirectPath());
     }
